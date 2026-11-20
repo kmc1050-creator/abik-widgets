@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>타이머</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
+    background: #fffaf3;
+    color: #3b2f2a;
+  }
+  .card {
+    max-width: 420px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #f0e2cf;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+  h1 { font-size: 18px; margin: 0 0 10px; text-align: left; }
+  /* 남은 시간 표시: 작은 임베드에서도 크게 */
+  #display {
+    font-size: 54px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin: 8px 0 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .row { display: flex; gap: 8px; align-items: center; justify-content: center; }
+  input {
+    width: 90px;
+    padding: 10px;
+    font-size: 18px;
+    text-align: center;
+    border: 1px solid #e3d3bf;
+    border-radius: 10px;
+  }
+  button {
+    padding: 11px 16px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  #startBtn { background: #e8913a; color: #fff; }
+  #resetBtn { background: #efe4d6; color: #3b2f2a; }
+  button:disabled, input:disabled { opacity: 0.45; cursor: not-allowed; }
+  #message { min-height: 22px; margin-top: 12px; font-size: 15px; color: #b5532b; }
+  #message.done { font-size: 22px; font-weight: 800; color: #2f8f5b; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>⏱️ 타이머</h1>
+    <div id="display">00:00</div>
+    <div class="row">
+      <input id="minutes" type="number" min="1" max="99" placeholder="분">
+      <span>분</span>
+      <button id="startBtn">시작</button>
+      <button id="resetBtn">초기화</button>
+    </div>
+    <div id="message"></div>
+  </div>
+
+<script>
+  const display = document.getElementById("display");
+  const minutesInput = document.getElementById("minutes");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const message = document.getElementById("message");
+
+  let timerId = null;   // setInterval 번호 (멈출 때 필요)
+  let endTime = 0;      // 끝나는 시각(밀리초). 이 시각과 현재 시각의 차이로 남은 시간을 계산
+
+  // 초를 MM:SS 글자로 바꾼다 (한 자리면 앞에 0)
+  function format(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  }
+
+  // 실행 중에는 입력창·시작 버튼을 잠근다
+  function setRunning(running) {
+    startBtn.disabled = running;
+    minutesInput.disabled = running;
+  }
+
+  function tick() {
+    const left = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+    display.textContent = format(left);
+    if (left === 0) {
+      clearInterval(timerId);
+      timerId = null;
+      setRunning(false);
+      message.textContent = "완료!";
+      message.className = "done";
+    }
+  }
+
+  startBtn.addEventListener("click", function () {
+    if (timerId !== null) return; // 연타해도 두 번 돌지 않게
+
+    // 1~99 사이의 정수만 받는다
+    const value = minutesInput.value.trim();
+    const minutes = Number(value);
+    if (value === "" || !Number.isInteger(minutes) || minutes < 1 || minutes > 99) {
+      message.textContent = "1~99 사이의 정수(분)를 입력해 주세요.";
+      message.className = "";
+      return;
+    }
+
+    message.textContent = "";
+    message.className = "";
+    endTime = Date.now() + minutes * 60 * 1000;
+    setRunning(true);
+    tick();
+    timerId = setInterval(tick, 250); // 자주 확인해서 초가 건너뛰지 않게
+  });
+
+  resetBtn.addEventListener("click", function () {
+    clearInterval(timerId);
+    timerId = null;
+    setRunning(false);
+    display.textContent = "00:00";
+    message.textContent = "";
+    message.className = "";
+  });
+</script>
+</body>
+</html>

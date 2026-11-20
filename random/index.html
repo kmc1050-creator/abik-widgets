@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>랜덤 뽑기</title>
+<style>
+  /* 전체 화면: 노션 임베드 안에서도 잘 보이도록 여백을 작게 */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
+    background: #fffaf3;
+    color: #3b2f2a;
+  }
+  .card {
+    max-width: 420px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #f0e2cf;
+    border-radius: 14px;
+    padding: 16px;
+  }
+  h1 { font-size: 18px; margin: 0 0 10px; }
+  label { font-size: 13px; color: #7a6a60; }
+  textarea {
+    width: 100%;
+    height: 110px;
+    margin-top: 6px;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #e3d3bf;
+    border-radius: 10px;
+    resize: vertical;
+    font-family: inherit;
+  }
+  button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    background: #e8913a;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  button:hover { background: #d27d28; }
+  /* 결과 칸: 뽑힌 후보를 크게 보여 줌 */
+  #result {
+    margin-top: 14px;
+    min-height: 56px;
+    padding: 12px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 800;
+    background: #fff3e3;
+    border-radius: 10px;
+    word-break: break-all;
+  }
+  #result.notice { font-size: 14px; font-weight: 400; color: #b5532b; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎲 랜덤 뽑기</h1>
+    <label for="candidates">후보를 한 줄에 하나씩 적어 주세요</label>
+    <textarea id="candidates" placeholder="짜장면&#10;짬뽕&#10;볶음밥"></textarea>
+    <button id="drawBtn">뽑기</button>
+    <div id="result">?</div>
+  </div>
+
+<script>
+  // 화면에서 쓸 요소들을 미리 찾아 둔다
+  const input = document.getElementById("candidates");
+  const button = document.getElementById("drawBtn");
+  const result = document.getElementById("result");
+
+  button.addEventListener("click", function () {
+    // 1) 입력을 줄 단위로 나누고, 앞뒤 공백을 지운 뒤 빈 줄은 뺀다
+    const list = input.value
+      .split("\n")
+      .map(function (line) { return line.trim(); })
+      .filter(function (line) { return line !== ""; });
+
+    // 2) 후보가 없으면 안내만 보여 주고 끝낸다
+    if (list.length === 0) {
+      result.textContent = "후보를 한 개 이상 입력해 주세요.";
+      result.classList.add("notice");
+      return;
+    }
+
+    // 3) 0 ~ (후보 수 - 1) 사이의 숫자를 무작위로 골라 그 후보를 보여 준다
+    const index = Math.floor(Math.random() * list.length);
+    result.textContent = list[index];
+    result.classList.remove("notice");
+  });
+</script>
+</body>
+</html>
