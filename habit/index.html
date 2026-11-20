@@ -23,22 +23,36 @@
   }
   h1 { font-size: 18px; margin: 0 0 4px; }
   #weekLabel { font-size: 13px; color: #7a6a60; margin-bottom: 10px; }
+  /* 습관 한 줄 묶음 */
+  .habit { padding: 10px 0; border-top: 1px dashed #f0e2cf; }
+  .habit:first-child { border-top: none; }
+  .head { display: flex; gap: 6px; }
   input[type=text] {
-    width: 100%;
-    padding: 10px;
+    flex: 1;
+    min-width: 0;
+    padding: 9px 10px;
     font-size: 15px;
     border: 1px solid #e3d3bf;
     border-radius: 10px;
   }
+  .del {
+    padding: 0 12px; font-size: 13px; border: none; border-radius: 10px;
+    background: #efe4d6; color: #7a6a60; cursor: pointer;
+  }
   /* 요일 7칸 */
-  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 12px; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
   .day {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    padding: 8px 0; border-radius: 10px; background: #fff3e3; font-size: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 0; border-radius: 10px; background: #fff3e3; font-size: 12px;
     cursor: pointer; user-select: none;
   }
   .day.today { outline: 2px solid #e8913a; }
   .day input { width: 22px; height: 22px; accent-color: #e8913a; cursor: pointer; }
+  #addBtn {
+    width: 100%; margin-top: 10px; padding: 11px; font-size: 15px; font-weight: 700;
+    color: #fff; background: #e8913a; border: none; border-radius: 10px; cursor: pointer;
+  }
+  #addBtn:disabled { opacity: 0.45; cursor: not-allowed; }
   #saveNotice { margin-top: 10px; font-size: 12px; color: #b5532b; min-height: 16px; }
 </style>
 </head>
@@ -46,37 +60,40 @@
   <div class="card">
     <h1>✅ 해빗 트래커</h1>
     <div id="weekLabel"></div>
-    <input id="habitName" type="text" placeholder="습관 이름 (예: 물 2L 마시기)">
-    <div class="days" id="days"></div>
+    <div id="list"></div>
+    <button id="addBtn">+ 습관 추가</button>
     <div id="saveNotice"></div>
   </div>
 
 <script>
   const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
-  const nameInput = document.getElementById("habitName");
-  const daysBox = document.getElementById("days");
+  const MAX_HABITS = 5; // [토핑] 습관은 최대 5개까지
+  const list = document.getElementById("list");
+  const addBtn = document.getElementById("addBtn");
   const weekLabel = document.getElementById("weekLabel");
   const saveNotice = document.getElementById("saveNotice");
 
-  // 날짜를 "2026-11-16"처럼 기기 현지 날짜 기준 글자로 바꾼다
   function ymd(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
+  function emptyHabit() {
+    return { name: "", checks: [false, false, false, false, false, false, false] };
+  }
 
-  // 이번 주 월요일 구하기 (getDay: 일=0, 월=1 ... 토=6)
+  // 이번 주 월요일
   const today = new Date();
   const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-
-  // 주마다 따로 저장하려고 저장 이름에 월요일 날짜를 넣는다
   const STORAGE_KEY = "habit-week-" + ymd(monday);
 
-  // 저장된 기록 읽기 (저장이 막혀 있으면 빈 기록으로 시작)
+  // [토핑] 기록을 습관 목록 형태로 저장 { habits: [ {name, checks}, ... ] }
   let canSave = true;
-  let data = { name: "", checks: [false, false, false, false, false, false, false] };
+  let data = { habits: [emptyHabit()] };
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) data = JSON.parse(saved);
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved && Array.isArray(saved.habits)) data = saved;
+    // 기본 버전({name, checks}) 기록이 있으면 첫 번째 습관으로 옮겨 온다
+    else if (saved && Array.isArray(saved.checks)) data = { habits: [saved] };
   } catch (e) {
     canSave = false;
   }
@@ -87,41 +104,78 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       canSave = false;
-      showSaveNotice();
     }
+    showSaveNotice();
   }
-
   function showSaveNotice() {
-    if (!canSave) saveNotice.textContent = "이 화면에서는 기록을 저장할 수 없어요. 새로고침하면 체크가 사라집니다.";
+    saveNotice.textContent = canSave ? "" : "이 화면에서는 기록을 저장할 수 없어요. 새로고침하면 체크가 사라집니다.";
   }
 
-  // 화면 그리기
-  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-  weekLabel.textContent = "이번 주 " + (monday.getMonth() + 1) + "/" + monday.getDate() + " ~ " + (sunday.getMonth() + 1) + "/" + sunday.getDate();
-  nameInput.value = data.name;
+  // 습관 목록 전체를 다시 그린다
+  function render() {
+    list.innerHTML = "";
+    data.habits.forEach(function (habit, h) {
+      const row = document.createElement("div");
+      row.className = "habit";
 
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday); d.setDate(monday.getDate() + i);
-    const cell = document.createElement("label");
-    cell.className = "day" + (ymd(d) === ymd(today) ? " today" : "");
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.checked = !!data.checks[i];
-    box.addEventListener("change", function () {
-      data.checks[i] = box.checked; // 켜고 끄기
-      save();
+      const head = document.createElement("div");
+      head.className = "head";
+      const name = document.createElement("input");
+      name.type = "text";
+      name.placeholder = "습관 이름 (예: 아침 약 먹기)";
+      name.value = habit.name;
+      name.addEventListener("input", function () { habit.name = name.value; save(); });
+      head.appendChild(name);
+
+      // [토핑] 습관이 2개 이상일 때만 지우기 버튼
+      if (data.habits.length > 1) {
+        const del = document.createElement("button");
+        del.className = "del";
+        del.textContent = "지우기";
+        del.addEventListener("click", function () {
+          if (!confirm("'" + (habit.name || "이름 없는 습관") + "'을(를) 지울까요?")) return;
+          data.habits.splice(h, 1);
+          save();
+          render();
+        });
+        head.appendChild(del);
+      }
+      row.appendChild(head);
+
+      const days = document.createElement("div");
+      days.className = "days";
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday); d.setDate(monday.getDate() + i);
+        const cell = document.createElement("label");
+        cell.className = "day" + (ymd(d) === ymd(today) ? " today" : "");
+        cell.innerHTML = "<b>" + DAY_NAMES[i] + "</b><span>" + (d.getMonth() + 1) + "/" + d.getDate() + "</span>";
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = !!habit.checks[i];
+        box.addEventListener("change", function () { habit.checks[i] = box.checked; save(); });
+        cell.appendChild(box);
+        days.appendChild(cell);
+      }
+      row.appendChild(days);
+      list.appendChild(row);
     });
-    cell.innerHTML = "<b>" + DAY_NAMES[i] + "</b><span>" + (d.getMonth() + 1) + "/" + d.getDate() + "</span>";
-    cell.appendChild(box);
-    daysBox.appendChild(cell);
+    addBtn.disabled = data.habits.length >= MAX_HABITS;
+    addBtn.textContent = addBtn.disabled ? "습관은 " + MAX_HABITS + "개까지" : "+ 습관 추가";
   }
 
-  // 습관 이름은 칠 때마다 저장
-  nameInput.addEventListener("input", function () {
-    data.name = nameInput.value;
+  // [토핑] 습관 추가
+  addBtn.addEventListener("click", function () {
+    if (data.habits.length >= MAX_HABITS) return;
+    data.habits.push(emptyHabit());
     save();
+    render();
+    const inputs = list.querySelectorAll("input[type=text]");
+    inputs[inputs.length - 1].focus();
   });
 
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  weekLabel.textContent = "이번 주 " + (monday.getMonth() + 1) + "/" + monday.getDate() + " ~ " + (sunday.getMonth() + 1) + "/" + sunday.getDate();
+  render();
   showSaveNotice();
 </script>
 </body>
