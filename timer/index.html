@@ -14,6 +14,8 @@
     color: #3b2f2a;
   }
   .card {
+    position: relative;       /* [토핑] 물·물방울을 카드 안에 겹쳐 그리기 위해 */
+    overflow: hidden;
     max-width: 420px;
     margin: 0 auto;
     background: #fff;
@@ -22,8 +24,8 @@
     padding: 16px;
     text-align: center;
   }
+  .content { position: relative; z-index: 2; } /* 글자·버튼은 물 위에 */
   h1 { font-size: 18px; margin: 0 0 10px; text-align: left; }
-  /* 남은 시간 표시: 작은 임베드에서도 크게 */
   #display {
     font-size: 54px;
     font-weight: 800;
@@ -39,6 +41,7 @@
     text-align: center;
     border: 1px solid #e3d3bf;
     border-radius: 10px;
+    background: rgba(255,255,255,0.9);
   }
   button {
     padding: 11px 16px;
@@ -53,60 +56,167 @@
   button:disabled, input:disabled { opacity: 0.45; cursor: not-allowed; }
   #message { min-height: 22px; margin-top: 12px; font-size: 15px; color: #b5532b; }
   #message.done { font-size: 22px; font-weight: 800; color: #2f8f5b; }
+
+  /* ===== [토핑] 물이 빠지는 효과 ===== */
+  /* 물: 남은 시간 비율만큼 높이가 정해진다 (JS가 height를 바꿈) */
+  #water {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 0%;
+    background: linear-gradient(#bfe3f5, #8fcbe9);
+    transition: height 0.3s linear;
+    z-index: 1;
+  }
+  /* 물 표면 물결: 넓은 물결 그림을 옆으로 계속 밀어서 출렁이게 보이게 */
+  #water::before {
+    content: "";
+    position: absolute; left: 0; top: -9px;
+    width: 200%; height: 10px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='10' viewBox='0 0 80 10'><path d='M0 5 Q20 0 40 5 T80 5 V10 H0 Z' fill='%23bfe3f5'/></svg>") repeat-x;
+    animation: wave 2.5s linear infinite;
+  }
+  @keyframes wave { from { transform: translateX(0); } to { transform: translateX(-80px); } }
+
+  /* 물방울: 위에서 떨어져 수면에서 사라진다 */
+  .drop {
+    position: absolute; top: -14px;
+    width: 10px; height: 14px;
+    background: #8fcbe9;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    z-index: 1;
+    animation: fall linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(var(--dist)); opacity: 0.2; } }
+
+  /* 끝났을 때 퍼지는 물결 고리 */
+  .ripple {
+    position: absolute;
+    width: 20px; height: 20px; margin: -10px 0 0 -10px;
+    border: 2px solid #6bb8de;
+    border-radius: 50%;
+    z-index: 1;
+    animation: ripple 1.2s ease-out forwards;
+  }
+  @keyframes ripple { to { transform: scale(14); opacity: 0; } }
+
+  /* 움직임 줄이기 설정을 켠 사람에게는 움직이는 효과를 끈다 */
+  @media (prefers-reduced-motion: reduce) {
+    #water::before, .drop, .ripple { animation: none; display: none; }
+    #water { transition: none; }
+  }
 </style>
 </head>
 <body>
-  <div class="card">
-    <h1>⏱️ 타이머</h1>
-    <div id="display">00:00</div>
-    <div class="row">
-      <input id="minutes" type="number" min="1" max="99" placeholder="분">
-      <span>분</span>
-      <button id="startBtn">시작</button>
-      <button id="resetBtn">초기화</button>
+  <div class="card" id="card">
+    <div id="water"></div>
+    <div class="content">
+      <h1>⏱️ 타이머</h1>
+      <div id="display">00:00</div>
+      <div class="row">
+        <input id="minutes" type="number" min="1" max="99" placeholder="분">
+        <span>분</span>
+        <button id="startBtn">시작</button>
+        <button id="resetBtn">초기화</button>
+      </div>
+      <div id="message"></div>
     </div>
-    <div id="message"></div>
   </div>
 
 <script>
+  const card = document.getElementById("card");
+  const water = document.getElementById("water");
   const display = document.getElementById("display");
   const minutesInput = document.getElementById("minutes");
   const startBtn = document.getElementById("startBtn");
   const resetBtn = document.getElementById("resetBtn");
   const message = document.getElementById("message");
 
-  let timerId = null;   // setInterval 번호 (멈출 때 필요)
-  let endTime = 0;      // 끝나는 시각(밀리초). 이 시각과 현재 시각의 차이로 남은 시간을 계산
+  let timerId = null;
+  let dropId = null;     // [토핑] 물방울을 떨어뜨리는 반복 번호
+  let endTime = 0;
+  let totalMs = 0;       // [토핑] 처음 설정한 전체 시간 (물 높이 비율 계산용)
+  let audio = null;      // [토핑] 소리를 내는 장치 (브라우저 내장)
 
-  // 초를 MM:SS 글자로 바꾼다 (한 자리면 앞에 0)
   function format(totalSeconds) {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
     return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
   }
 
-  // 실행 중에는 입력창·시작 버튼을 잠근다
   function setRunning(running) {
     startBtn.disabled = running;
     minutesInput.disabled = running;
   }
 
+  // [토핑] 물방울 하나를 무작위 위치에서 수면까지 떨어뜨린다
+  function addDrop() {
+    const drop = document.createElement("div");
+    drop.className = "drop";
+    drop.style.left = (10 + Math.random() * 80) + "%";
+    const surface = card.clientHeight - water.clientHeight; // 수면까지의 거리
+    drop.style.setProperty("--dist", Math.max(20, surface) + "px");
+    drop.style.animationDuration = "0.9s";
+    card.appendChild(drop);
+    drop.addEventListener("animationend", function () { drop.remove(); });
+  }
+
+  // [토핑] 끝났을 때 카드 곳곳에서 물결 고리를 퍼뜨린다
+  function splash() {
+    for (let i = 0; i < 4; i++) {
+      setTimeout(function () {
+        const r = document.createElement("div");
+        r.className = "ripple";
+        r.style.left = (20 + Math.random() * 60) + "%";
+        r.style.top = (30 + Math.random() * 50) + "%";
+        card.appendChild(r);
+        r.addEventListener("animationend", function () { r.remove(); });
+      }, i * 250);
+    }
+  }
+
+  // [토핑] "띵" 소리를 세 번 낸다 (소리 파일 없이 브라우저가 직접 만듦)
+  function beep() {
+    if (!audio) return;
+    for (let i = 0; i < 3; i++) {
+      const t = audio.currentTime + i * 0.45;
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;                 // 높은 "라" 음
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.3, t + 0.02);   // 톡 하고 커졌다가
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35); // 부드럽게 줄어듦
+      osc.connect(gain).connect(audio.destination);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    }
+  }
+
+  function stopEffects() {
+    clearInterval(dropId);
+    dropId = null;
+  }
+
   function tick() {
-    const left = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+    const leftMs = Math.max(0, endTime - Date.now());
+    const left = Math.round(leftMs / 1000);
     display.textContent = format(left);
+    water.style.height = (totalMs ? (leftMs / totalMs) * 100 : 0) + "%"; // [토핑] 남은 만큼만 물
     if (left === 0) {
       clearInterval(timerId);
       timerId = null;
+      stopEffects();
+      water.style.height = "0%";
       setRunning(false);
       message.textContent = "완료!";
       message.className = "done";
+      splash();
+      beep();
     }
   }
 
   startBtn.addEventListener("click", function () {
-    if (timerId !== null) return; // 연타해도 두 번 돌지 않게
+    if (timerId !== null) return;
 
-    // 1~99 사이의 정수만 받는다
     const value = minutesInput.value.trim();
     const minutes = Number(value);
     if (value === "" || !Number.isInteger(minutes) || minutes < 1 || minutes > 99) {
@@ -115,17 +225,31 @@
       return;
     }
 
+    // [토핑] 브라우저는 버튼을 누른 순간에만 소리 장치를 켜 준다 → 시작할 때 미리 준비
+    try {
+      if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      audio.resume();
+    } catch (e) { audio = null; }
+
     message.textContent = "";
     message.className = "";
-    endTime = Date.now() + minutes * 60 * 1000;
+    totalMs = minutes * 60 * 1000;
+    endTime = Date.now() + totalMs;
+    water.style.transition = "none";      // 처음엔 물을 한 번에 가득 채우고
+    water.style.height = "100%";
+    water.offsetHeight;                   // (화면에 바로 반영시키는 한 줄)
+    water.style.transition = "";          // 그다음부터 부드럽게 빠지게
     setRunning(true);
     tick();
-    timerId = setInterval(tick, 250); // 자주 확인해서 초가 건너뛰지 않게
+    timerId = setInterval(tick, 250);
+    dropId = setInterval(addDrop, 1200);  // [토핑] 1.2초마다 물방울
   });
 
   resetBtn.addEventListener("click", function () {
     clearInterval(timerId);
     timerId = null;
+    stopEffects();
+    water.style.height = "0%";
     setRunning(false);
     display.textContent = "00:00";
     message.textContent = "";
