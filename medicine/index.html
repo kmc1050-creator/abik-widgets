@@ -35,19 +35,28 @@
     width: 100%; min-height: 132px; padding: 12px 8px;
     font-size: 18px; font-weight: 700; color: #3b2f2a;
     background: #fff3e3; border: 2px dashed #e8b77f; border-radius: 16px;
-    cursor: pointer; font-family: inherit;
+    cursor: pointer; font-family: inherit; word-break: keep-all; text-align: center;
   }
   .dose .icon { font-size: 40px; line-height: 1; }
   .dose .sub { font-size: 13px; font-weight: 400; color: #7a6a60; }
   .dose.done { background: #fdebc8; border: 2px solid #e8913a; }
   .dose.done .icon { animation: pop .35s ease-out; }
+  /* 정한 시각이 지났는데 아직 안 누름 */
+  .dose.late { background: #fff0ec; border: 2px solid #c8462b; color: #8f2f1b; }
+  .dose.late .sub { color: #8f2f1b; font-weight: 700; }
   @keyframes pop { 0% { transform: scale(.4); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
-  .undo {
-    display: block; margin: 6px auto 0; padding: 6px 10px; font-size: 12px;
-    background: none; border: none; color: #9a8a80; text-decoration: underline; cursor: pointer;
-    font-family: inherit; visibility: hidden;
+  /* 먹은 버튼을 다시 누르면 나오는 확인 줄 (노션 임베드에선 confirm 창이 막힐 수 있어 화면 안에서 물음) */
+  .ask {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 6px; min-height: 34px; font-size: 13px; color: #7a6a60; visibility: hidden;
   }
-  .undo.show { visibility: visible; }
+  .ask.show { visibility: visible; }
+  .ask .q { width: 100%; text-align: center; }
+  .ask button {
+    padding: 6px 12px; font-size: 13px; font-family: inherit; border-radius: 8px; cursor: pointer;
+    border: 1px solid #e8b77f; background: #fff; color: #3b2f2a;
+  }
+  .ask .yes { border-color: #c8462b; color: #8f2f1b; font-weight: 700; }
 
   #cheer { margin: 12px 0 0; text-align: center; font-size: 15px; font-weight: 700; color: #b5532b; min-height: 20px; }
 
@@ -79,11 +88,13 @@
     <div class="doses">
       <div>
         <button class="dose" id="amBtn" data-slot="am"></button>
-        <button class="undo" id="amUndo" data-slot="am">잘못 눌렀어요</button>
+        <div class="ask" id="amAsk"><span class="q">스티커 뗄까요?</span>
+          <button class="yes" data-slot="am">떼기</button><button class="no" data-slot="am">그대로</button></div>
       </div>
       <div>
         <button class="dose" id="pmBtn" data-slot="pm"></button>
-        <button class="undo" id="pmUndo" data-slot="pm">잘못 눌렀어요</button>
+        <div class="ask" id="pmAsk"><span class="q">스티커 뗄까요?</span>
+          <button class="yes" data-slot="pm">떼기</button><button class="no" data-slot="pm">그대로</button></div>
       </div>
     </div>
     <div id="cheer"></div>
@@ -100,9 +111,10 @@
 
 <script>
   const STORAGE_KEY = "medicine-log"; // { "2026-11-22": { am: "08:12", pm: "21:30" } }
+  // due: 이 시각이 지나도 안 누르면 버튼이 「아직이에요!」로 바뀜 (휴대폰 알람 시각과 맞추기)
   const SLOT = {
-    am: { name: "아침", icon: "☀️", empty: "🌅" },
-    pm: { name: "저녁", icon: "🌙", empty: "🌆" }
+    am: { name: "아침", icon: "☀️", empty: "🌅", due: "08:00" },
+    pm: { name: "저녁", icon: "🌙", empty: "🌆", due: "21:00" }
   };
 
   function ymd(d) {
@@ -142,12 +154,18 @@
 
   function press(slot) {
     const day = log[todayKey] || (log[todayKey] = {});
-    if (day[slot]) return; // 이미 붙인 스티커는 두 번 붙지 않음
+    if (day[slot]) { // 이미 붙였으면 두 번 붙지 않고, 뗄지 한 번 물음
+      askOpen[slot] = !askOpen[slot];
+      render();
+      return;
+    }
     day[slot] = hm(new Date());
     save();
     render(slot);
   }
+  const askOpen = { am: false, pm: false };
   function undo(slot) {
+    askOpen[slot] = false;
     const day = log[todayKey];
     if (!day) return;
     delete day[slot];
@@ -159,20 +177,27 @@
   function renderButton(slot, justPressed) {
     const info = SLOT[slot];
     const btn = document.getElementById(slot + "Btn");
-    const undoBtn = document.getElementById(slot + "Undo");
+    const ask = document.getElementById(slot + "Ask");
     const time = dayOf(todayKey)[slot];
+    const late = !time && hm(new Date()) >= info.due;
     btn.classList.toggle("done", !!time);
-    if (time) {
-      btn.innerHTML = '<span class="icon">' + info.icon + '</span>' + info.name + ' 먹었슈!' +
-        '<span class="sub">' + time + '에 붙인 스티커</span>';
+    btn.classList.toggle("late", late);
+    if (late) {
+      btn.innerHTML = '<span class="icon">' + info.empty + '</span>' + info.name + ' 약 아직이에요!' +
+        '<span class="sub">' + info.due.replace(/^0/, "") + ' 지났어요 · 먹었으면 꾹</span>';
+      btn.setAttribute("aria-label", info.name + " 약 아직 안 먹음, " + info.due + " 지남. 먹었으면 누르기");
+    } else if (time) {
+      btn.innerHTML = '<span class="icon">' + info.icon + '</span>' + info.name + ' 약 먹었슈!' +
+        '<span class="sub">' + time + '에 붙임 · 다시 누르면 떼기</span>';
       btn.setAttribute("aria-label", info.name + " 약 먹음, " + time);
     } else {
-      btn.innerHTML = '<span class="icon">' + info.empty + '</span>' + info.name + ' 먹었슈' +
+      btn.innerHTML = '<span class="icon">' + info.empty + '</span>' + info.name + ' 약 먹었슈' +
         '<span class="sub">먹었으면 꾹</span>';
       btn.setAttribute("aria-label", info.name + " 약 먹었으면 누르기");
     }
     if (!justPressed) btn.querySelector(".icon").style.animation = "none";
-    undoBtn.classList.toggle("show", !!time);
+    if (!time) askOpen[slot] = false;
+    ask.classList.toggle("show", askOpen[slot]);
   }
 
   function renderBoard() {
@@ -235,7 +260,8 @@
   // 날짜가 바뀌면(자정·다음 날 다시 열기) 오늘 칸을 새로 그림
   function checkDate() {
     const k = ymd(new Date());
-    if (k !== todayKey) { todayKey = k; render(); }
+    if (k !== todayKey) todayKey = k;
+    render(); // 날짜가 바뀌거나 정한 시각이 지나면 버튼 모양을 새로 그림
   }
   setInterval(checkDate, 30000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkDate(); });
@@ -246,8 +272,11 @@
   document.querySelectorAll(".dose").forEach(function (b) {
     b.addEventListener("click", function () { press(b.dataset.slot); });
   });
-  document.querySelectorAll(".undo").forEach(function (b) {
+  document.querySelectorAll(".ask .yes").forEach(function (b) {
     b.addEventListener("click", function () { undo(b.dataset.slot); });
+  });
+  document.querySelectorAll(".ask .no").forEach(function (b) {
+    b.addEventListener("click", function () { askOpen[b.dataset.slot] = false; render(); });
   });
   save();
   render();
