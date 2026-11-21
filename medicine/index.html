@@ -15,29 +15,32 @@
     margin: 0;
     padding: 14px;
     font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
-    background: linear-gradient(160deg, #fff9ee 0%, #fff1dc 100%);
+    background: #fff; /* 노션 흰 바탕과 맞춤 */
     color: #4a3024;
   }
   .card {
     width: min(100%, 460px);
     margin: 0 auto;
-    background: linear-gradient(145deg, #fffefb 0%, #fff6e7 100%);
+    background: #fffcf6;
     border: 1px solid #f2ddbd;
     border-radius: 24px;
     padding: 20px 16px 18px;
-    box-shadow: 0 12px 30px rgba(150, 91, 42, .13), 0 3px 8px rgba(150, 91, 42, .08);
+    box-shadow: 0 2px 8px rgba(150, 91, 42, .08);
   }
   h1 { font-size: 21px; margin: 0 0 3px; letter-spacing: -.4px; display: flex; align-items: center; gap: 6px; }
   h1 img { width: 30px; height: 30px; }
   #todayLabel { font-size: 13px; color: #79675c; margin-bottom: 17px; }
 
   /* 아침·저녁 큰 버튼 */
-  .doses { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .doses { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 12px; }
+  /* 같은 줄 버튼은 문구 길이와 상관없이 같은 높이 */
+  .doses > div { display: grid; grid-row: span 2; grid-template-rows: subgrid; }
+  .doses > div:nth-child(n+3) .dose, .doses.one > div:nth-child(n+2) .dose { margin-top: 12px; }
   .dose {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
     width: 100%; min-height: 136px; padding: 13px 8px 12px;
     font-size: 18px; font-weight: 700; color: #3b2f2a;
-    background: linear-gradient(150deg, #fffaf0, #ffeed3); border: 2px dashed #e9b576; border-radius: 20px;
+    background: #fff3e0; border: 2px dashed #e9b576; border-radius: 20px;
     cursor: pointer; font-family: inherit; word-break: keep-all; text-align: center;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #f3d8b4;
     transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
@@ -49,10 +52,10 @@
   /* 아직 안 붙인 스티커는 흐리게, 누르면 선명하게 찍힘 */
   .dose:not(.done) .icon img { filter: grayscale(.7); opacity: .5; }
   .dose .sub { font-size: 13px; font-weight: 400; color: #6f5d52; }
-  .dose.done { background: linear-gradient(150deg, #fff7dd, #ffe3af); border: 2px solid #de8435; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #eebc7d; }
+  .dose.done { background: #ffe6b8; border: 2px solid #de8435; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #eebc7d; }
   .dose.done .icon { animation: stamp .42s cubic-bezier(.2, 1.5, .45, 1); }
   /* 정한 시각이 지났는데 아직 안 누름 */
-  .dose.late { background: linear-gradient(150deg, #fff5f1, #ffe4da); border: 2px solid #c8462b; color: #8f2f1b; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #f1c3b3; }
+  .dose.late { background: #ffe8e0; border: 2px solid #c8462b; color: #8f2f1b; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #f1c3b3; }
   .dose.late .sub { color: #8f2f1b; font-weight: 700; }
   @keyframes stamp { 0% { transform: scale(.35) rotate(-12deg); } 70% { transform: scale(1.15) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
   @media (prefers-reduced-motion: reduce) { .dose, .dose.done .icon { animation: none !important; transition: none; } }
@@ -64,7 +67,7 @@
   .ask.show { display: flex; }
   .ask .q { width: 100%; text-align: center; }
   .ask button {
-    padding: 6px 12px; font-size: 13px; font-family: inherit; border-radius: 8px; cursor: pointer;
+    min-height: 44px; padding: 8px 16px; font-size: 14px; font-family: inherit; border-radius: 10px; cursor: pointer;
     border: 1px solid #e8b77f; background: #fff; color: #3b2f2a;
   }
   .ask button { font-weight: 700; }
@@ -77,10 +80,10 @@
   .boardHead h2 { font-size: 15px; margin: 0; }
   #streak { font-size: 13px; color: #7a6a60; }
   .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
-  .wname { text-align: center; font-size: 11px; color: #9a8a80; }
+  .wname { text-align: center; font-size: 11px; color: #6f5d52; }
   .cell {
     aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border-radius: 11px; background: #fff4e5; font-size: 11px; color: #8f7867; position: relative;
+    border-radius: 11px; background: #fff4e5; font-size: 11px; color: #6f5d52; position: relative;
   }
   .cell .num { position: absolute; top: 3px; left: 5px; font-size: 10px; }
   .cell .stk, .cell .half { display: grid; place-items: center; line-height: 1; }
@@ -93,7 +96,7 @@
   .legend span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
   .legend img { width: 17px; height: 17px; object-fit: contain; }
   .link {
-    display: block; margin: 10px auto 0; padding: 6px 10px; font-size: 13px; font-family: inherit;
+    display: block; min-height: 44px; margin: 4px auto 0; padding: 10px 14px; font-size: 13px; font-family: inherit;
     background: none; border: none; color: #8a5a3a; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
   }
   .link:focus-visible, .timeBox button:focus-visible { outline: 3px solid #b96332; outline-offset: 2px; border-radius: 6px; }
@@ -101,8 +104,8 @@
   #monthBox h2 { font-size: 14px; margin: 0; text-align: center; }
   .timeBox { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 6px; font-size: 14px; }
   .timeBox label { display: inline-flex; align-items: center; gap: 4px; }
-  .timeBox input { font-size: 15px; font-family: inherit; padding: 4px 6px; border: 1px solid #e3c49c; border-radius: 8px; background: #fff; color: #3b2f2a; }
-  .timeBox button { padding: 6px 14px; font-size: 14px; font-family: inherit; border-radius: 8px; border: 1px solid #de8435; background: #ffe3af; color: #4a3024; font-weight: 700; cursor: pointer; }
+  .timeBox input { min-height: 44px; cursor: pointer; font-size: 15px; font-family: inherit; padding: 4px 8px; border: 1px solid #e3c49c; border-radius: 8px; background: #fff; color: #3b2f2a; }
+  .timeBox button { min-height: 44px; padding: 8px 24px; font-size: 14px; font-family: inherit; border-radius: 8px; border: 1px solid #de8435; background: #ffe3af; color: #4a3024; font-weight: 700; cursor: pointer; }
   /* 약을 1개만 고르면 한 줄, 3~4개면 2×2로 작게 */
   .doses.one { grid-template-columns: minmax(0, 1fr); }
   .doses.compact .dose { min-height: 112px; font-size: 16px; padding: 10px 6px; }
@@ -112,16 +115,16 @@
   .timeBox { flex-direction: column; }
   .timeHelp { margin: 0; font-size: 12px; color: #7a6a60; text-align: center; }
   .timeRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: min(100%, 230px); }
-  .timeRow label { gap: 6px; }
-  .timeRow input[type=checkbox] { width: 18px; height: 18px; accent-color: #c8662f; }
+  .timeRow label { gap: 8px; min-height: 44px; padding-right: 8px; cursor: pointer; }
+  .timeRow input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent-color: #c8662f; cursor: pointer; }
   #timeMsg { font-size: 12px; color: #8f2f1b; min-height: 15px; }
   [hidden] { display: none !important; }
   #saveNotice { margin-top: 10px; font-size: 12px; color: #b5532b; min-height: 16px; text-align: center; }
 </style>
 </head>
 <body>
-  <div class="card">
-    <h1><img src="img/icon.png" alt="">약 먹었슈</h1>
+  <main class="card">
+    <h1><img src="img/icon.png" alt="" width="192" height="192">약 먹었슈</h1>
     <div id="todayLabel"></div>
 
     <div class="doses" id="doses"></div>
@@ -150,7 +153,7 @@
       <button id="timeSave">저장</button>
     </div>
     <div id="saveNotice"></div>
-  </div>
+  </main>
 
 <script>
   const STORAGE_KEY = "medicine-log"; // { "2026-11-22": { am: "08:12", pm: "21:30" } }
@@ -163,7 +166,7 @@
     bed: { name: "자기 전", due: "23:00" }
   };
   let on = ["am", "pm"]; // 처음엔 아침·저녁
-  function img(k, alt) { return '<img src="img/' + k + '.png" alt="' + (alt || "") + '">'; }
+  function img(k, alt) { return '<img src="img/' + k + '.png" alt="' + (alt || "") + '" width="192" height="192">'; }
 
   function ymd(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
