@@ -110,7 +110,9 @@
   .cell .half.many img { width: 14px; height: 14px; }
   .timeBox { flex-direction: column; }
   .timeHelp { margin: 0; font-size: 12px; color: #7a6a60; text-align: center; }
-  .timeRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: min(100%, 230px); }
+  #timeRows { display: flex; flex-direction: column; gap: 8px; width: min(100%, 270px); }
+  .timeRow { display: grid; grid-template-columns: 1fr 160px; align-items: center; gap: 10px; }
+  .timeRow input[type=time] { width: 100%; text-align: center; }
   .timeRow label { gap: 8px; min-height: 44px; padding-right: 8px; cursor: pointer; }
   .timeRow input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent-color: #c8662f; cursor: pointer; }
   #timeMsg { font-size: 12px; color: #8f2f1b; min-height: 15px; }
