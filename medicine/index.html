@@ -8,16 +8,17 @@
 <meta name="apple-mobile-web-app-title" content="약 먹었슈">
 <link rel="icon" type="image/png" href="img/icon.png">
 <link rel="apple-touch-icon" href="img/icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
 <title>약 먹었슈</title>
 <style>
+  /* 둥글고 잘 읽히는 나눔스퀘어라운드(네이버 공식 웹폰트) */
+  @font-face { font-family: "NanumSquareRound"; font-weight: 400; font-display: swap; src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2) format("woff2"), url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff) format("woff"); }
+  @font-face { font-family: "NanumSquareRound"; font-weight: 700; font-display: swap; src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundB.woff2) format("woff2"), url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundB.woff) format("woff"); }
+  @font-face { font-family: "NanumSquareRound"; font-weight: 800; font-display: swap; src: url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundEB.woff2) format("woff2"), url(https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundEB.woff) format("woff"); }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     padding: 14px;
-    font-family: "Gowun Dodum", -apple-system, "Malgun Gothic", sans-serif;
+    font-family: "NanumSquareRound", -apple-system, "Malgun Gothic", sans-serif;
     background: #fff; /* 노션 흰 바탕과 맞춤 */
     color: #4a3024;
   }
@@ -82,12 +83,12 @@
   .wname { text-align: center; font-size: 11px; color: #6f5d52; }
   .cell {
     aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border-radius: 6px; background: #fff4e5; font-size: 11px; color: #6f5d52; position: relative;
+    border-radius: 6px; padding-top: 9px; background: #fff4e5; font-size: 11px; color: #6f5d52; position: relative;
   }
   .cell .num { position: absolute; top: 3px; left: 5px; font-size: 10px; }
   .cell .stk, .cell .half { display: grid; place-items: center; line-height: 1; }
-  .cell .stk img { width: 27px; height: 27px; object-fit: contain; }
-  .cell .half img { width: 20px; height: 20px; object-fit: contain; }
+  .cell .stk img { width: 36px; height: 36px; object-fit: contain; }
+  .cell .half img { width: 30px; height: 30px; object-fit: contain; }
   .cell.full { background: #ffe8bc; }
   .cell.today { outline: 2px solid #d77732; outline-offset: 1px; }
   .cell.blank { background: none; }
@@ -109,8 +110,8 @@
   .doses.one { grid-template-columns: minmax(0, 1fr); }
   .doses.compact .dose { min-height: 112px; font-size: 16px; padding: 10px 6px; }
   .doses.compact .dose .icon, .doses.compact .dose .icon img { height: 46px; width: 46px; }
-  .cell .half.many { display: flex; flex-wrap: wrap; justify-content: center; gap: 1px; max-width: 34px; }
-  .cell .half.many img { width: 14px; height: 14px; }
+  .cell .half.many { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; max-width: 42px; }
+  .cell .half.many img { width: 20px; height: 20px; }
   .timeBox { flex-direction: column; }
   .timeHelp { margin: 0; font-size: 12px; color: #7a6a60; text-align: center; }
   #timeRows { display: flex; flex-direction: column; gap: 8px; width: min(100%, 270px); }
@@ -119,9 +120,7 @@
   .timeRow label { gap: 8px; min-height: 44px; padding-right: 8px; cursor: pointer; }
   .timeRow input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent-color: #c8662f; cursor: pointer; }
   #timeMsg { font-size: 12px; color: #8f2f1b; min-height: 15px; }
-  /* 큰 글자는 둥글고 통통한 주아(굵기가 한 가지라 굵게 덧칠하지 않음) */
-  h1, h2, #todayLabel, .dose, #cheer, .ask button, .timeBox button, #streak { font-family: "Jua", "Gowun Dodum", sans-serif; font-weight: 400 !important; }
-  .dose .sub { font-family: "Gowun Dodum", sans-serif; }
+  h1 { font-weight: 800; }
   [hidden] { display: none !important; }
   #saveNotice { margin-top: 10px; font-size: 12px; color: #b5532b; min-height: 16px; text-align: center; }
 </style>
@@ -273,7 +272,7 @@
       btn.setAttribute("aria-label", info.name + " 약 아직 안 먹음, " + info.due + " 지남. 먹었으면 누르기");
     } else if (time) {
       btn.innerHTML = icon + info.name + ' 약 먹었슈!' +
-        '<span class="sub">' + time + '에 붙임 · 다시 누르면 떼기</span>';
+        '<span class="sub">' + time + '에 먹음</span>';
       btn.setAttribute("aria-label", info.name + " 약 먹음, " + time);
     } else {
       btn.innerHTML = icon + info.name + ' 약 먹었슈' +
