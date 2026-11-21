@@ -3,54 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#fffaf3">
+<meta name="theme-color" content="#fff6e9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="약 먹었슈">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+<link rel="icon" type="image/png" href="img/icon.png">
+<link rel="apple-touch-icon" href="img/icon.png">
 <title>약 먹었슈</title>
 <style>
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 16px;
+    padding: 14px;
     font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
-    background: #fffaf3;
-    color: #3b2f2a;
+    background: linear-gradient(160deg, #fff9ee 0%, #fff1dc 100%);
+    color: #4a3024;
   }
   .card {
-    max-width: 460px;
+    width: min(100%, 460px);
     margin: 0 auto;
-    background: #fff;
-    border: 1px solid #f0e2cf;
-    border-radius: 14px;
-    padding: 16px;
+    background: linear-gradient(145deg, #fffefb 0%, #fff6e7 100%);
+    border: 1px solid #f2ddbd;
+    border-radius: 24px;
+    padding: 20px 16px 18px;
+    box-shadow: 0 12px 30px rgba(150, 91, 42, .13), 0 3px 8px rgba(150, 91, 42, .08);
   }
-  h1 { font-size: 20px; margin: 0 0 2px; }
-  #todayLabel { font-size: 13px; color: #7a6a60; margin-bottom: 14px; }
+  h1 { font-size: 21px; margin: 0 0 3px; letter-spacing: -.4px; display: flex; align-items: center; gap: 6px; }
+  h1 img { width: 30px; height: 30px; }
+  #todayLabel { font-size: 13px; color: #79675c; margin-bottom: 17px; }
 
   /* 아침·저녁 큰 버튼 */
-  .doses { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .doses { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
   .dose {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-    width: 100%; min-height: 132px; padding: 12px 8px;
+    width: 100%; min-height: 136px; padding: 13px 8px 12px;
     font-size: 18px; font-weight: 700; color: #3b2f2a;
-    background: #fff3e3; border: 2px dashed #e8b77f; border-radius: 16px;
+    background: linear-gradient(150deg, #fffaf0, #ffeed3); border: 2px dashed #e9b576; border-radius: 20px;
     cursor: pointer; font-family: inherit; word-break: keep-all; text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #f3d8b4;
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
   }
-  .dose .icon { font-size: 40px; line-height: 1; }
-  .dose .sub { font-size: 13px; font-weight: 400; color: #7a6a60; }
-  .dose.done { background: #fdebc8; border: 2px solid #e8913a; }
-  .dose.done .icon { animation: pop .35s ease-out; }
+  .dose:active { transform: translateY(4px) scale(.98); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 #f3d8b4; }
+  .dose:focus-visible, .ask button:focus-visible { outline: 3px solid #b96332; outline-offset: 3px; }
+  .dose .icon { display: grid; place-items: center; height: 62px; line-height: 1; }
+  .dose .icon img { width: 62px; height: 62px; object-fit: contain; display: block; }
+  /* 아직 안 붙인 스티커는 흐리게, 누르면 선명하게 찍힘 */
+  .dose:not(.done) .icon img { filter: grayscale(.7); opacity: .5; }
+  .dose .sub { font-size: 13px; font-weight: 400; color: #6f5d52; }
+  .dose.done { background: linear-gradient(150deg, #fff7dd, #ffe3af); border: 2px solid #de8435; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #eebc7d; }
+  .dose.done .icon { animation: stamp .42s cubic-bezier(.2, 1.5, .45, 1); }
   /* 정한 시각이 지났는데 아직 안 누름 */
-  .dose.late { background: #fff0ec; border: 2px solid #c8462b; color: #8f2f1b; }
+  .dose.late { background: linear-gradient(150deg, #fff5f1, #ffe4da); border: 2px solid #c8462b; color: #8f2f1b; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 0 #f1c3b3; }
   .dose.late .sub { color: #8f2f1b; font-weight: 700; }
-  @keyframes pop { 0% { transform: scale(.4); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+  @keyframes stamp { 0% { transform: scale(.35) rotate(-12deg); } 70% { transform: scale(1.15) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
+  @media (prefers-reduced-motion: reduce) { .dose, .dose.done .icon { animation: none !important; transition: none; } }
   /* 먹은 버튼을 다시 누르면 나오는 확인 줄 (노션 임베드에선 confirm 창이 막힐 수 있어 화면 안에서 물음) */
   .ask {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px;
-    margin-top: 6px; min-height: 34px; font-size: 13px; color: #7a6a60; visibility: hidden;
+    flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 6px; font-size: 13px; color: #7a6a60; display: none;
   }
-  .ask.show { visibility: visible; }
+  .ask.show { display: flex; }
   .ask .q { width: 100%; text-align: center; }
   .ask button {
     padding: 6px 12px; font-size: 13px; font-family: inherit; border-radius: 8px; cursor: pointer;
@@ -58,31 +69,46 @@
   }
   .ask .yes { border-color: #c8462b; color: #8f2f1b; font-weight: 700; }
 
-  #cheer { margin: 12px 0 0; text-align: center; font-size: 15px; font-weight: 700; color: #b5532b; min-height: 20px; }
+  #cheer { margin: 15px 0 0; text-align: center; font-size: 15px; font-weight: 700; color: #a84f2c; min-height: 20px; }
 
   /* 스티커 판 */
-  .boardHead { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; }
+  .boardHead { display: flex; justify-content: space-between; align-items: baseline; margin-top: 22px; }
   .boardHead h2 { font-size: 15px; margin: 0; }
   #streak { font-size: 13px; color: #7a6a60; }
-  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 8px; }
+  .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
   .wname { text-align: center; font-size: 11px; color: #9a8a80; }
   .cell {
     aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border-radius: 10px; background: #faf3ea; font-size: 11px; color: #9a8a80; position: relative;
+    border-radius: 11px; background: #fff4e5; font-size: 11px; color: #8f7867; position: relative;
   }
   .cell .num { position: absolute; top: 3px; left: 5px; font-size: 10px; }
-  .cell .stk { font-size: 20px; line-height: 1; }
-  .cell .half { font-size: 13px; line-height: 1; letter-spacing: 1px; }
-  .cell.full { background: #fdebc8; }
-  .cell.today { outline: 2px solid #e8913a; }
+  .cell .stk, .cell .half { display: grid; place-items: center; line-height: 1; }
+  .cell .stk img { width: 27px; height: 27px; object-fit: contain; }
+  .cell .half img { width: 20px; height: 20px; object-fit: contain; }
+  .cell.full { background: #ffe8bc; }
+  .cell.today { outline: 2px solid #d77732; outline-offset: 1px; }
   .cell.blank { background: none; }
-  .legend { margin-top: 8px; font-size: 12px; color: #7a6a60; text-align: center; }
+  .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 9px; margin-top: 11px; font-size: 12px; color: #725f55; text-align: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .legend img { width: 17px; height: 17px; object-fit: contain; }
+  .link {
+    display: block; margin: 10px auto 0; padding: 6px 10px; font-size: 13px; font-family: inherit;
+    background: none; border: none; color: #8a5a3a; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .link:focus-visible, .timeBox button:focus-visible { outline: 3px solid #b96332; outline-offset: 2px; border-radius: 6px; }
+  #monthBox { margin-top: 6px; padding-top: 10px; border-top: 1px dashed #efd6b2; }
+  #monthBox h2 { font-size: 14px; margin: 0; text-align: center; }
+  .timeBox { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 6px; font-size: 14px; }
+  .timeBox label { display: inline-flex; align-items: center; gap: 4px; }
+  .timeBox input { font-size: 15px; font-family: inherit; padding: 4px 6px; border: 1px solid #e3c49c; border-radius: 8px; background: #fff; color: #3b2f2a; }
+  .timeBox button { padding: 6px 14px; font-size: 14px; font-family: inherit; border-radius: 8px; border: 1px solid #de8435; background: #ffe3af; color: #4a3024; font-weight: 700; cursor: pointer; }
+  [hidden] { display: none !important; }
   #saveNotice { margin-top: 10px; font-size: 12px; color: #b5532b; min-height: 16px; text-align: center; }
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>💊 약 먹었슈</h1>
+    <h1><img src="img/icon.png" alt="">약 먹었슈</h1>
     <div id="todayLabel"></div>
 
     <div class="doses">
@@ -100,12 +126,26 @@
     <div id="cheer"></div>
 
     <div class="boardHead">
-      <h2 id="boardTitle">스티커 판</h2>
+      <h2>이번 주</h2>
       <span id="streak"></span>
     </div>
-    <div class="week" id="weekNames"></div>
-    <div class="week" id="board"></div>
-    <div class="legend">🍰 아침·저녁 다 먹은 날 · ☀️ 아침만 · 🌙 저녁만</div>
+    <div class="week wnames"></div>
+    <div class="week" id="weekRow"></div>
+
+    <button class="link" id="monthToggle" aria-expanded="false" aria-controls="monthBox">이달 판 보기 ▼</button>
+    <div id="monthBox" hidden>
+      <h2 id="boardTitle">스티커 판</h2>
+      <div class="week wnames"></div>
+      <div class="week" id="board"></div>
+      <div class="legend"><span><img src="img/done.png" alt="">아침·저녁 다 먹은 날</span><span><img src="img/am.png" alt="">아침만</span><span><img src="img/pm.png" alt="">저녁만</span></div>
+    </div>
+
+    <button class="link" id="timeToggle" aria-expanded="false" aria-controls="timeBox"></button>
+    <div class="timeBox" id="timeBox" hidden>
+      <label>아침 <input type="time" id="amTime"></label>
+      <label>저녁 <input type="time" id="pmTime"></label>
+      <button id="timeSave">저장</button>
+    </div>
     <div id="saveNotice"></div>
   </div>
 
@@ -113,8 +153,8 @@
   const STORAGE_KEY = "medicine-log"; // { "2026-11-22": { am: "08:12", pm: "21:30" } }
   // due: 이 시각이 지나도 안 누르면 버튼이 「아직이에요!」로 바뀜 (휴대폰 알람 시각과 맞추기)
   const SLOT = {
-    am: { name: "아침", icon: "☀️", empty: "🌅", due: "08:00" },
-    pm: { name: "저녁", icon: "🌙", empty: "🌆", due: "21:00" }
+    am: { name: "아침", icon: '<img src="img/am.png" alt="">', empty: '<img src="img/am.png" alt="">', due: "08:00" },
+    pm: { name: "저녁", icon: '<img src="img/pm.png" alt="">', empty: '<img src="img/pm.png" alt="">', due: "21:00" }
   };
 
   function ymd(d) {
@@ -147,6 +187,15 @@
     document.getElementById("saveNotice").textContent = canSave ? "" :
       "이 화면에서는 기록을 저장할 수 없어요. 새로고침하면 스티커가 사라집니다.";
   }
+
+  // 약 먹는 시각: 위젯 아래 「알림 … 바꾸기」에서 정하면 이 기기에 저장됨
+  const TIMES_KEY = "medicine-times"; // { am: "08:00", pm: "21:00" }
+  const okTime = function (v) { return typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v); };
+  try {
+    const t = JSON.parse(localStorage.getItem(TIMES_KEY) || "null");
+    if (t && okTime(t.am)) SLOT.am.due = t.am;
+    if (t && okTime(t.pm)) SLOT.pm.due = t.pm;
+  } catch (e) { /* 못 읽으면 기본 시각 */ }
 
   let todayKey = ymd(new Date());
 
@@ -200,6 +249,29 @@
     ask.classList.toggle("show", askOpen[slot]);
   }
 
+  function fillCell(cell, key, d) {
+    const day = dayOf(key);
+    cell.className = "cell" + (key === todayKey ? " today" : "");
+    let inner = '<span class="num">' + d + '</span>';
+    if (day.am && day.pm) { cell.classList.add("full"); inner += '<span class="stk"><img src="img/done.png" alt="아침·저녁 완료"></span>'; }
+    else if (day.am) inner += '<span class="half"><img src="img/am.png" alt="아침만"></span>';
+    else if (day.pm) inner += '<span class="half"><img src="img/pm.png" alt="저녁만"></span>';
+    cell.innerHTML = inner;
+  }
+
+  function renderWeek() {
+    const row = document.getElementById("weekRow");
+    row.innerHTML = "";
+    const mon = new Date();
+    mon.setDate(mon.getDate() - (mon.getDay() + 6) % 7); // 이번 주 월요일
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i);
+      const cell = document.createElement("div");
+      fillCell(cell, ymd(d), d.getDate());
+      row.appendChild(cell);
+    }
+  }
+
   function renderBoard() {
     const now = new Date();
     const y = now.getFullYear(), m = now.getMonth();
@@ -213,15 +285,8 @@
       const b = document.createElement("div"); b.className = "cell blank"; board.appendChild(b);
     }
     for (let d = 1; d <= lastDate; d++) {
-      const key = ymd(new Date(y, m, d));
-      const day = dayOf(key);
       const cell = document.createElement("div");
-      cell.className = "cell" + (key === todayKey ? " today" : "");
-      let inner = '<span class="num">' + d + '</span>';
-      if (day.am && day.pm) { cell.classList.add("full"); inner += '<span class="stk">🍰</span>'; }
-      else if (day.am) inner += '<span class="half">☀️</span>';
-      else if (day.pm) inner += '<span class="half">🌙</span>';
-      cell.innerHTML = inner;
+      fillCell(cell, ymd(new Date(y, m, d)), d);
       board.appendChild(cell);
     }
   }
@@ -249,12 +314,16 @@
     renderButton("pm", justPressed === "pm");
     const t = dayOf(todayKey);
     document.getElementById("cheer").textContent =
-      t.am && t.pm ? "오늘 스티커 판 한 칸 완성! 🍰" :
+      t.am && t.pm ? "오늘 한 칸 완성!" :
       t.am ? "아침 OK! 저녁도 잊지 말기" :
       t.pm ? "저녁 OK! 내일 아침도 꾹" : "";
     const s = streak();
-    document.getElementById("streak").textContent = s > 0 ? "🔥 " + s + "일 연속" : "";
+    document.getElementById("streak").textContent = s > 0 ? s + "일 연속" : "";
+    renderWeek();
     renderBoard();
+    const short = function (v) { return v.replace(/^0/, ""); };
+    document.getElementById("timeToggle").textContent =
+      "알림 " + short(SLOT.am.due) + " · " + short(SLOT.pm.due) + " 바꾸기";
   }
 
   // 날짜가 바뀌면(자정·다음 날 다시 열기) 오늘 칸을 새로 그림
@@ -267,8 +336,36 @@
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkDate(); });
   window.addEventListener("focus", checkDate);
 
-  document.getElementById("weekNames").innerHTML =
-    ["월", "화", "수", "목", "금", "토", "일"].map(function (n) { return '<div class="wname">' + n + '</div>'; }).join("");
+  document.querySelectorAll(".wnames").forEach(function (el) {
+    el.innerHTML = ["월", "화", "수", "목", "금", "토", "일"].map(function (n) { return '<div class="wname">' + n + '</div>'; }).join("");
+  });
+
+  // 접었다 펴기 (이달 판·시각 설정)
+  function toggleBox(btnId, boxId, openText, closeText) {
+    const btn = document.getElementById(btnId), box = document.getElementById(boxId);
+    const open = box.hidden;
+    box.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (openText) btn.textContent = open ? closeText : openText;
+    return open;
+  }
+  document.getElementById("monthToggle").addEventListener("click", function () {
+    toggleBox("monthToggle", "monthBox", "이달 판 보기 ▼", "이달 판 접기 ▲");
+  });
+  document.getElementById("timeToggle").addEventListener("click", function () {
+    if (toggleBox("timeToggle", "timeBox")) {
+      document.getElementById("amTime").value = SLOT.am.due;
+      document.getElementById("pmTime").value = SLOT.pm.due;
+    }
+  });
+  document.getElementById("timeSave").addEventListener("click", function () {
+    const am = document.getElementById("amTime").value, pm = document.getElementById("pmTime").value;
+    if (okTime(am)) SLOT.am.due = am;
+    if (okTime(pm)) SLOT.pm.due = pm;
+    try { localStorage.setItem(TIMES_KEY, JSON.stringify({ am: SLOT.am.due, pm: SLOT.pm.due })); } catch (e) {}
+    toggleBox("timeToggle", "timeBox");
+    render();
+  });
   document.querySelectorAll(".dose").forEach(function (b) {
     b.addEventListener("click", function () { press(b.dataset.slot); });
   });
