@@ -39,19 +39,19 @@
   .doses > div:nth-child(n+3) .dose, .doses.one > div:nth-child(n+2) .dose { margin-top: 12px; }
   .dose {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-    width: 100%; min-height: 136px; padding: 13px 8px 12px;
-    font-size: 18px; font-weight: 700; color: #3b2f2a;
+    width: 100%; min-height: 116px; padding: 11px 7px 10px;
+    font-size: 15.5px; font-weight: 700; color: #3b2f2a;
     background: #fff3e0; border: 1.5px dashed #e0ac72; border-radius: 12px;
     cursor: pointer; font-family: inherit; word-break: keep-all; text-align: center;
     transition: transform .12s ease, background .16s ease;
   }
   .dose:active { transform: scale(.98); }
   .dose:focus-visible, .ask button:focus-visible { outline: 3px solid #b96332; outline-offset: 3px; }
-  .dose .icon { display: grid; place-items: center; height: 62px; line-height: 1; }
-  .dose .icon img { width: 62px; height: 62px; object-fit: contain; display: block; }
+  .dose .icon { display: grid; place-items: center; height: 53px; line-height: 1; }
+  .dose .icon img { width: 53px; height: 53px; object-fit: contain; display: block; }
   /* 아직 안 붙인 스티커는 흐리게, 누르면 선명하게 찍힘 */
   .dose:not(.done) .icon img { filter: grayscale(.7); opacity: .5; }
-  .dose .sub { font-size: 13px; font-weight: 400; color: #6f5d52; }
+  .dose .sub { font-size: 12px; font-weight: 400; color: #6f5d52; }
   .dose.done { background: #ffe6b8; border: 1.5px solid #de8435; }
   .dose.done .icon { animation: stamp .42s cubic-bezier(.2, 1.5, .45, 1); }
   /* 정한 시각이 지났는데 아직 안 누름 */
@@ -83,12 +83,14 @@
   .wname { text-align: center; font-size: 11px; color: #6f5d52; }
   .cell {
     aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border-radius: 6px; padding-top: 9px; background: #fff4e5; font-size: 11px; color: #6f5d52; position: relative;
+    border-radius: 6px; padding-top: 5px; background: #fff4e5; font-size: 11px; color: #6f5d52; position: relative;
   }
-  .cell .num { position: absolute; top: 3px; left: 5px; font-size: 10px; }
+  .cell .num { position: absolute; top: 2px; left: 4px; font-size: 10px; z-index: 1; }
   .cell .stk, .cell .half { display: grid; place-items: center; line-height: 1; }
-  .cell .stk img { width: 36px; height: 36px; object-fit: contain; }
-  .cell .half img { width: 30px; height: 30px; object-fit: contain; }
+  .cell .stk { width: 100%; }
+  .cell .stk img { width: min(52px, 100%); height: auto; aspect-ratio: 1 / 1; object-fit: contain; }
+  .cell .half { width: 100%; }
+  .cell .half img { width: min(44px, 92%); height: auto; aspect-ratio: 1 / 1; object-fit: contain; }
   .cell.full { background: #ffe8bc; }
   .cell.today { outline: 2px solid #d77732; outline-offset: 1px; }
   .cell.blank { background: none; }
@@ -108,10 +110,10 @@
   .timeBox button { min-height: 44px; padding: 8px 24px; font-size: 14px; font-family: inherit; border-radius: 8px; border: 1px solid #de8435; background: #ffe3af; color: #4a3024; font-weight: 700; cursor: pointer; }
   /* 약을 1개만 고르면 한 줄, 3~4개면 2×2로 작게 */
   .doses.one { grid-template-columns: minmax(0, 1fr); }
-  .doses.compact .dose { min-height: 112px; font-size: 16px; padding: 10px 6px; }
-  .doses.compact .dose .icon, .doses.compact .dose .icon img { height: 46px; width: 46px; }
-  .cell .half.many { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; max-width: 42px; }
-  .cell .half.many img { width: 20px; height: 20px; }
+  .doses.compact .dose { min-height: 95px; font-size: 14px; padding: 9px 5px; }
+  .doses.compact .dose .icon, .doses.compact .dose .icon img { height: 39px; width: 39px; }
+  .cell .half.many { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; max-width: 100%; }
+  .cell .half.many img { width: 50%; height: auto; }
   .timeBox { flex-direction: column; }
   .timeHelp { margin: 0; font-size: 12px; color: #7a6a60; text-align: center; }
   #timeRows { display: flex; flex-direction: column; gap: 8px; width: min(100%, 270px); }
@@ -268,7 +270,7 @@
     const icon = '<span class="icon">' + img(slot) + '</span>';
     if (late) {
       btn.innerHTML = icon + info.name + ' 약 아직이에요!' +
-        '<span class="sub">' + info.due.replace(/^0/, "") + ' 지났어요 · 먹었으면 꾹</span>';
+        '<span class="sub">' + info.due.replace(/^0/, "") + ' 지났어요<br>먹었으면 꾹</span>';
       btn.setAttribute("aria-label", info.name + " 약 아직 안 먹음, " + info.due + " 지남. 먹었으면 누르기");
     } else if (time) {
       btn.innerHTML = icon + info.name + ' 약 먹었슈!' +
