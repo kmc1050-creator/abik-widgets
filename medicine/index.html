@@ -8,13 +8,16 @@
 <meta name="apple-mobile-web-app-title" content="약 먹었슈">
 <link rel="icon" type="image/png" href="img/icon.png">
 <link rel="apple-touch-icon" href="img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
 <title>약 먹었슈</title>
 <style>
   * { box-sizing: border-box; }
   body {
     margin: 0;
     padding: 14px;
-    font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
+    font-family: "Gowun Dodum", -apple-system, "Malgun Gothic", sans-serif;
     background: #fff; /* 노션 흰 바탕과 맞춤 */
     color: #4a3024;
   }
@@ -116,6 +119,9 @@
   .timeRow label { gap: 8px; min-height: 44px; padding-right: 8px; cursor: pointer; }
   .timeRow input[type=checkbox] { width: 22px; height: 22px; min-height: 0; accent-color: #c8662f; cursor: pointer; }
   #timeMsg { font-size: 12px; color: #8f2f1b; min-height: 15px; }
+  /* 큰 글자는 둥글고 통통한 주아(굵기가 한 가지라 굵게 덧칠하지 않음) */
+  h1, h2, #todayLabel, .dose, #cheer, .ask button, .timeBox button, #streak { font-family: "Jua", "Gowun Dodum", sans-serif; font-weight: 400 !important; }
+  .dose .sub { font-family: "Gowun Dodum", sans-serif; }
   [hidden] { display: none !important; }
   #saveNotice { margin-top: 10px; font-size: 12px; color: #b5532b; min-height: 16px; text-align: center; }
 </style>
