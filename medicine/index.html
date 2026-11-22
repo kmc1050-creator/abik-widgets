@@ -124,13 +124,42 @@
   #timeMsg { font-size: 12px; color: #8f2f1b; min-height: 15px; }
   h1 { font-weight: 800; }
   [hidden] { display: none !important; }
+  /* 상단 바: 제목 + 약 시간 설정 버튼 (피드백 반영: 아래에 숨어 있어 찾기 어려웠음) */
+  .topBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .topBar h1 { margin: 0; }
+  .timeBtn {
+    flex: none; min-height: 44px; padding: 6px 12px; font-size: 13px; font-weight: 700; font-family: inherit;
+    border: 1.5px solid #de8435; border-radius: 999px; background: #fff3e0; color: #4a3024; cursor: pointer; white-space: nowrap;
+  }
+  .timeBtn[aria-expanded="true"] { background: #ffe3af; }
+  .timeBtn:focus-visible { outline: 3px solid #b96332; outline-offset: 2px; }
+  #timeBox { margin: 10px 0 4px; padding: 12px 8px; border: 1px dashed #efd6b2; border-radius: 12px; }
+  /* 안 먹었을 때 눈에 띄는 경고 띠 (피드백 반영) */
+  .alert {
+    margin: 0 0 12px; padding: 11px 12px; border-radius: 10px; background: #c8462b; color: #fff;
+    font-size: 15px; font-weight: 800; text-align: center; word-break: keep-all;
+  }
+  .dose.late { border-width: 3px; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(200, 70, 43, .45); } 50% { box-shadow: 0 0 0 7px rgba(200, 70, 43, 0); } }
+  @media (prefers-reduced-motion: reduce) { .dose.late { animation: none; } }
+  @media (max-width: 360px) { .topBar h1 { font-size: 18px; } .timeBtn { padding: 6px 9px; font-size: 12px; } }
   #saveNotice { margin-top: 10px; font-size: 12px; color: #b5532b; min-height: 16px; text-align: center; }
 </style>
 </head>
 <body>
   <main class="card">
-    <h1><img src="img/icon.png" alt="" width="192" height="192">약 먹었슈</h1>
+    <div class="topBar">
+      <h1><img src="img/icon.png" alt="" width="192" height="192">약 먹었슈</h1>
+      <button class="timeBtn" id="timeToggle" aria-expanded="false" aria-controls="timeBox"></button>
+    </div>
+    <div class="timeBox" id="timeBox" hidden>
+      <p class="timeHelp">먹는 약에 체크하고 시각을 고르세요.<br>점심·자기 전 약도 여기서 켤 수 있어요.</p>
+      <div id="timeRows"></div>
+      <div id="timeMsg"></div>
+      <button id="timeSave">저장</button>
+    </div>
     <div id="todayLabel"></div>
+    <div class="alert" id="alert" role="alert" hidden></div>
 
     <div class="doses" id="doses"></div>
     <div id="cheer"></div>
@@ -150,13 +179,6 @@
       <div class="legend" id="legend"></div>
     </div>
 
-    <button class="link" id="timeToggle" aria-expanded="false" aria-controls="timeBox"></button>
-    <div class="timeBox" id="timeBox" hidden>
-      <p class="timeHelp">먹는 약에 체크하고 시각을 고르세요.<br>시각이 지나도 안 누르면 버튼이 빨개져요.</p>
-      <div id="timeRows"></div>
-      <div id="timeMsg"></div>
-      <button id="timeSave">저장</button>
-    </div>
     <div id="saveNotice"></div>
   </main>
 
@@ -360,7 +382,16 @@
     renderBoard();
     const short = function (v) { return v.replace(/^0/, ""); };
     document.getElementById("timeToggle").textContent =
-      "약 시간 설정 (" + on.map(function (k) { return short(SLOT[k].due); }).join(" · ") + ")";
+      "⏰ " + on.map(function (k) { return short(SLOT[k].due); }).join(" · ");
+    document.getElementById("timeToggle").setAttribute("aria-label",
+      "약 시간 설정, 지금 " + on.map(function (k) { return SLOT[k].name + " " + SLOT[k].due; }).join(", "));
+    // 시각 지났는데 안 먹은 약 → 맨 위 빨간 띠 + 탭 제목
+    const late = on.filter(function (k) { return !t[k] && hm(now) >= SLOT[k].due; });
+    const alertEl = document.getElementById("alert");
+    alertEl.hidden = !late.length;
+    alertEl.textContent = late.length ? "⚠️ " + late.map(function (k) { return SLOT[k].name; }).join("·") +
+      " 약 아직 안 먹었어요!" : "";
+    document.title = (late.length ? "⚠️ " : "") + "약 먹었슈";
   }
 
   // 날짜가 바뀌면(자정·다음 날 다시 열기) 오늘 칸을 새로 그림
