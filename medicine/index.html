@@ -131,7 +131,15 @@
     flex: none; min-height: 44px; padding: 6px 12px; font-size: 13px; font-weight: 700; font-family: inherit;
     border: 1.5px solid #de8435; border-radius: 999px; background: #fff3e0; color: #4a3024; cursor: pointer; white-space: nowrap;
   }
+  .timeBtn { display: flex; flex-direction: column; align-items: center; line-height: 1.25; border-radius: 12px; }
+  .timeBtn small { font-size: 11.5px; font-weight: 400; color: #6f5d52; }
   .timeBtn[aria-expanded="true"] { background: #ffe3af; }
+  /* 메인에 바로 보이는 「약 추가」 버튼 (피드백: 설정 안 안내는 못 봄) */
+  .addDose {
+    display: block; width: 100%; min-height: 48px; margin-top: 12px; padding: 10px; font-size: 15px; font-weight: 700;
+    font-family: inherit; color: #a84f2c; background: #fff; border: 1.5px dashed #de8435; border-radius: 12px; cursor: pointer;
+  }
+  .addDose:focus-visible { outline: 3px solid #b96332; outline-offset: 2px; }
   .timeBtn:focus-visible { outline: 3px solid #b96332; outline-offset: 2px; }
   #timeBox { margin: 10px 0 4px; padding: 12px 8px; border: 1px dashed #efd6b2; border-radius: 12px; }
   /* 안 먹었을 때 눈에 띄는 경고 띠 (피드백 반영) */
@@ -153,7 +161,7 @@
       <button class="timeBtn" id="timeToggle" aria-expanded="false" aria-controls="timeBox"></button>
     </div>
     <div class="timeBox" id="timeBox" hidden>
-      <p class="timeHelp">먹는 약에 체크하고 시각을 고르세요.<br>점심·자기 전 약도 여기서 켤 수 있어요.</p>
+      <p class="timeHelp">먹는 약에 체크하고 시각을 고르세요.</p>
       <div id="timeRows"></div>
       <div id="timeMsg"></div>
       <button id="timeSave">저장</button>
@@ -162,6 +170,7 @@
     <div class="alert" id="alert" role="alert" hidden></div>
 
     <div class="doses" id="doses"></div>
+    <button class="addDose" id="addDose" aria-controls="timeBox"></button>
     <div id="cheer"></div>
 
     <div class="boardHead">
@@ -381,8 +390,12 @@
     renderWeek();
     renderBoard();
     const short = function (v) { return v.replace(/^0/, ""); };
-    document.getElementById("timeToggle").textContent =
-      "⏰ " + on.map(function (k) { return short(SLOT[k].due); }).join(" · ");
+    document.getElementById("timeToggle").innerHTML =
+      "⏰ 약 시간 설정<small>" + on.map(function (k) { return short(SLOT[k].due); }).join(" · ") + "</small>";
+    const off = ORDER.filter(function (k) { return on.indexOf(k) < 0; });
+    const add = document.getElementById("addDose");
+    add.hidden = !off.length;
+    add.textContent = "＋ " + off.map(function (k) { return SLOT[k].name; }).join("·") + " 약 추가하기";
     document.getElementById("timeToggle").setAttribute("aria-label",
       "약 시간 설정, 지금 " + on.map(function (k) { return SLOT[k].name + " " + SLOT[k].due; }).join(", "));
     // 시각 지났는데 안 먹은 약 → 맨 위 빨간 띠 + 탭 제목
@@ -425,6 +438,10 @@
   }
   document.getElementById("monthToggle").addEventListener("click", function () {
     toggleBox("monthToggle", "monthBox", "이달 판 보기 ▼", "이달 판 접기 ▲");
+  });
+  document.getElementById("addDose").addEventListener("click", function () {
+    if (document.getElementById("timeBox").hidden) document.getElementById("timeToggle").click();
+    document.getElementById("timeBox").scrollIntoView({ behavior: "smooth", block: "start" });
   });
   document.getElementById("timeToggle").addEventListener("click", function () {
     if (toggleBox("timeToggle", "timeBox")) {
