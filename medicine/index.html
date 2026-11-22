@@ -238,9 +238,11 @@
   // 약 시간 설정: 위젯 아래 「약 시간 설정」에서 정하면 이 기기에 저장됨
   const TIMES_KEY = "medicine-times"; // { am: "08:00", noon: "12:30", pm: "21:00", bed: "23:00", on: ["am","pm"] }
   const okTime = function (v) { return typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v); };
+  let timesSaved = false;
   try {
     const t = JSON.parse(localStorage.getItem(TIMES_KEY) || "null");
     if (t && typeof t === "object") {
+      timesSaved = true;
       ORDER.forEach(function (k) { if (okTime(t[k])) SLOT[k].due = t[k]; });
       if (Array.isArray(t.on)) {
         const v = ORDER.filter(function (k) { return t.on.indexOf(k) >= 0; });
@@ -394,7 +396,7 @@
       "⏰ 약 시간 설정<small>" + on.map(function (k) { return short(SLOT[k].due); }).join(" · ") + "</small>";
     const off = ORDER.filter(function (k) { return on.indexOf(k) < 0; });
     const add = document.getElementById("addDose");
-    add.hidden = !off.length;
+    add.hidden = !off.length || timesSaved; // 처음 쓰는 사람에게만: 시간을 한 번 저장하면 사라짐
     add.textContent = "＋ " + off.map(function (k) { return SLOT[k].name; }).join("·") + " 약 추가하기";
     document.getElementById("timeToggle").setAttribute("aria-label",
       "약 시간 설정, 지금 " + on.map(function (k) { return SLOT[k].name + " " + SLOT[k].due; }).join(", "));
@@ -463,6 +465,7 @@
     const keep = { on: on };
     ORDER.forEach(function (k) { keep[k] = SLOT[k].due; });
     try { localStorage.setItem(TIMES_KEY, JSON.stringify(keep)); } catch (e) {}
+    timesSaved = true;
     toggleBox("timeToggle", "timeBox");
     buildDoses();
     render();
